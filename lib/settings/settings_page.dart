@@ -9,7 +9,7 @@ class SettingsPage extends StatelessWidget {
       child: Container(
         width: double.infinity,
         height: double.infinity,
-        color: Colors.grey[800],
+        color: Colors.grey[850],
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
