@@ -1,6 +1,7 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:weather_app/home/home_provider.dart';
 import 'package:weather_app/main_provider.dart';
 import 'package:weather_app/settings/settings_page.dart';
 import 'home/home_page.dart';
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MainProvider()),
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -54,6 +56,7 @@ class MainPage extends StatelessWidget {
         onTap: (int i) {
           debugPrint("taped index$i");
           mainProvider.pageIndex = i;
+          debugPrint(i.toString());
         },
       ),
     );
