@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
 class MainPage extends StatelessWidget {
   MainPage({Key? key}) : super(key: key);
 
+  /// アプリケーションのページ
   List<Widget> _pages = [
     HomePage(),
     HomePage(),
