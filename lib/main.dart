@@ -46,7 +46,7 @@ class MainPage extends StatelessWidget {
       body: _pages[mainProvider.pageIndex],
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.black,
         items: const [
           TabItem(icon: Icons.map, title: "全国"),
           TabItem(icon: Icons.home, title: "ホーム"),

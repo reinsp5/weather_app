@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
@@ -8,6 +8,8 @@ import 'package:weather_app/commons/weather_service.dart';
 class HomeProvider with ChangeNotifier {
   double _latitude = 0.0;
   double _longitude = 0.0;
+  String _prefecture = "";
+  String _city = "";
   LocationService locationService = LocationService();
   WeatherService weatherService = WeatherService();
 
@@ -15,6 +17,8 @@ class HomeProvider with ChangeNotifier {
 
   double get latitude => _latitude;
   double get longitude => _longitude;
+  String get prefecture => _prefecture;
+  String get city => _city;
   List<int> get weatherCode => _weatherCode;
 
   set latitude(latitude) {
@@ -30,6 +34,11 @@ class HomeProvider with ChangeNotifier {
   /// GPSの位置情報を取得する
   Future<void> getLocation() async {
     LocationData _locationData = await locationService.getGpsPosition();
+    Map<String, dynamic> result = await locationService.getLocationName(
+        latitude: _locationData.latitude!, longitude: _locationData.longitude!);
+    MyLocationData _locationName = MyLocationData.fromJson(result["response"]);
+    _prefecture = _locationName.location.first.prefecture;
+    _city = _locationName.location.first.city;
     _latitude = _locationData.latitude!;
     _longitude = _locationData.longitude!;
     notifyListeners();
@@ -158,5 +167,54 @@ class DailyUnits {
         "temperature_2m_max": temperature2MMax,
         "time": time,
         "weathercode": weathercode,
+      };
+}
+
+class MyLocationData {
+  MyLocationData({
+    required this.location,
+  });
+
+  List<MyLocation> location;
+
+  factory MyLocationData.fromJson(Map<String, dynamic> json) => MyLocationData(
+        location: List<MyLocation>.from(
+            json["location"].map((x) => MyLocation.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "location": List<dynamic>.from(location.map((x) => x.toJson())),
+      };
+}
+
+class MyLocation {
+  MyLocation({
+    this.prefecture = "",
+    this.city = "",
+    this.cityKana = "",
+    this.town = "",
+    this.townKana = "",
+  });
+
+  String prefecture;
+  String city;
+  String cityKana;
+  String town;
+  String townKana;
+
+  factory MyLocation.fromJson(Map<String, dynamic> json) => MyLocation(
+        city: json["city"],
+        cityKana: json["city_kana"],
+        town: json["town"],
+        townKana: json["town_kana"],
+        prefecture: json["prefecture"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "city": city,
+        "city_kana": cityKana,
+        "town": town,
+        "town_kana": townKana,
+        "prefecture": prefecture,
       };
 }
