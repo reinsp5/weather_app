@@ -10,107 +10,156 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     HomeProvider homeProvider =
         Provider.of<HomeProvider>(context, listen: false);
-    homeProvider.getLocation().then((value) {
-      homeProvider.getWeekWeather().then((value) {});
+    homeProvider.getLocAsGps().then((value) {
+      homeProvider.getWeekWeather();
+      homeProvider.streamLocation();
     });
 
     return SafeArea(
       child: Container(
         width: double.infinity,
-        color: Colors.grey[900],
         child: Consumer<HomeProvider>(
           builder: (context, provider, _) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        homeProvider.city,
-                        style: TextStyle(
-                          color: Colors.grey[50],
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
+            return Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          // 市区町村
+                          homeProvider.city,
+                          style: TextStyle(
+                            color: Colors.grey[50],
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        homeProvider.prefecture,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                        Text(
+                          // 都道府県
+                          homeProvider.prefecture,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Column(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       BoxedIcon(
-                        WeatherIcons.day_sunny,
+                        // 天候アイコン
+                        homeProvider.weatherIcon,
                         size: 225,
-                        color: Colors.orange.shade600,
+                        color: homeProvider.weatherIconColor,
                       ),
                       Text(
-                        "晴れ",
+                        // 天候
+                        homeProvider.weatherText,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.grey.shade50,
                           fontSize: 32,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "最高：26℃",
-                            style: TextStyle(
-                              color: Colors.red.shade600,
-                              fontSize: 21,
-                            ),
-                          ),
-                          VerticalDivider(),
-                          Text(
-                            "最低：19℃",
-                            style: TextStyle(
-                              color: Colors.blue.shade600,
-                              fontSize: 21,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          BoxedIcon(
-                            WeatherIcons.sunrise,
-                            color: Colors.white,
-                          ),
-                          Text(
-                            "日出：04:30",
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          ),
-                          VerticalDivider(),
-                          BoxedIcon(
-                            WeatherIcons.sunset,
-                            color: Colors.white,
-                          ),
-                          Text(
-                            "日入：18:45",
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          )
-                        ],
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Center(
+                    child: SizedBox(
+                      width: 300,
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Container(
+                            color: Colors.black,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      // 最高気温
+                                      "最高：" +
+                                          homeProvider.temperature2MMax +
+                                          "℃",
+                                      style: TextStyle(
+                                        color: Colors.red.shade600,
+                                        fontSize: 21,
+                                      ),
+                                    ),
+                                    const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Divider(),
+                                    ),
+                                    Text(
+                                      // 最低気温
+                                      "最低：" +
+                                          homeProvider.temperature2MMin +
+                                          "℃",
+                                      style: TextStyle(
+                                        color: Colors.blue.shade600,
+                                        fontSize: 21,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    BoxedIcon(
+                                      WeatherIcons.sunrise,
+                                      color: Colors.white,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        // 日の出時刻
+                                        homeProvider.sunrise,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Divider(),
+                                    ),
+                                    BoxedIcon(
+                                      WeatherIcons.sunset,
+                                      color: Colors.white,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Text(
+                                        // 日の入時刻
+                                        homeProvider.sunset,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),

@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 
@@ -24,27 +22,31 @@ class LocationService {
 
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
-    LocationData _locationData;
 
+    // 位置情報は有効か？
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
+      // 有効化するよう要求し、その結果を検証
       _serviceEnabled = await location.requestService();
       if (!_serviceEnabled) {
-        return Future.error("");
+        return Future.error("位置情報サービスが有効ではありません。");
       }
     }
 
+    // 位置情報サービスの利用権限はあるか？
     _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
+      // 位置情報サービスの利用権限を与えるよう要求し、その結果を検証
       _permissionGranted = await location.requestPermission();
       if (_permissionGranted != PermissionStatus.granted) {
-        return Future.error("");
+        return Future.error("位置情報サービスの利用権限がありません。");
       }
     }
 
-    return _locationData = await location.getLocation();
+    return await location.getLocation();
   }
 
+  /// 緯度／経度 を基に「地名」を検索する
   Future<Map<String, dynamic>> getLocationName(
       {double latitude = 0.0, double longitude = 0.0}) async {
     Map<String, dynamic> _parms = {

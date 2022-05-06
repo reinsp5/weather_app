@@ -1,46 +1,63 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:weather_app/commons/location_service.dart';
 import 'package:weather_app/commons/weather_service.dart';
+import 'package:weather_icons/weather_icons.dart';
 
 class HomeProvider with ChangeNotifier {
+  // 画面描画に必要な情報
+  String _prefecture = ""; // 都道府県
+  String _city = ""; // 市区町村
+  IconData _weatherIcon = WeatherIcons.na; // 天候アイコン
+  Color _weatherIconColor = Colors.white;
+  String _weatherText = ""; // 天候
+  String _temperature2MMin = "  . "; // 最低気温
+  String _temperature2MMax = "  . "; // 最高気温
+  String _sunrise = "  :  "; // 日の出
+  String _sunset = "  :  "; // 日の入
+
   double _latitude = 0.0;
   double _longitude = 0.0;
-  String _prefecture = "";
-  String _city = "";
+
   LocationService locationService = LocationService();
   WeatherService weatherService = WeatherService();
 
-  List<int> _weatherCode = [];
+  Daily _daily = Daily();
 
-  double get latitude => _latitude;
-  double get longitude => _longitude;
   String get prefecture => _prefecture;
   String get city => _city;
-  List<int> get weatherCode => _weatherCode;
+  IconData get weatherIcon => _weatherIcon;
+  Color get weatherIconColor => _weatherIconColor;
+  String get weatherText => _weatherText;
+  String get temperature2MMin => _temperature2MMin;
+  String get temperature2MMax => _temperature2MMax;
+  String get sunrise => _sunrise;
+  String get sunset => _sunset;
 
-  set latitude(latitude) {
-    _latitude = latitude;
-    notifyListeners();
-  }
-
-  set longitude(longitude) {
-    _longitude = longitude;
-    notifyListeners();
-  }
-
-  /// GPSの位置情報を取得する
-  Future<void> getLocation() async {
+  /// LocationService の getGpsPosition を呼び出し、位置情報を取得する。
+  Future<void> getLocAsGps() async {
+    // 位置情報を取得取得する
     LocationData _locationData = await locationService.getGpsPosition();
-    Map<String, dynamic> result = await locationService.getLocationName(
-        latitude: _locationData.latitude!, longitude: _locationData.longitude!);
-    MyLocationData _locationName = MyLocationData.fromJson(result["response"]);
+
+    // 位置情報を基に地名を取得する
+    Map<String, dynamic> _locationJson = await locationService.getLocationName(
+      latitude: _locationData.latitude!,
+      longitude: _locationData.longitude!,
+    );
+
+    // JSON配列を LocationNameData に変換する
+    LocationNameData _locationName = LocationNameData.fromJson(
+      json: _locationJson["response"],
+    );
+
+    // 画面の描画に必要なデータを取り出し、保管する
     _prefecture = _locationName.location.first.prefecture;
     _city = _locationName.location.first.city;
+
+    // 緯度／経度を保管する
     _latitude = _locationData.latitude!;
     _longitude = _locationData.longitude!;
+
     notifyListeners();
   }
 
@@ -48,29 +65,149 @@ class HomeProvider with ChangeNotifier {
   Future<void> getWeekWeather() async {
     WeekWeather _weekWeather = WeekWeather.fromJson(
         await weatherService.getWeekWeather(_latitude, _longitude));
-    _weatherCode = _weekWeather.daily.weathercode;
+    _daily = _weekWeather.daily;
+    setWeatherInfo(weatherInfo: _daily);
+    _temperature2MMin = _daily.temperature2MMin.first.toString();
+    _temperature2MMax = _daily.temperature2MMax.first.toString();
+    DateTime dateTime = DateTime.parse(_daily.sunrise.first);
+    _sunrise = dateTime.hour.toString().padLeft(2, "0") +
+        ":" +
+        dateTime.minute.toString().padLeft(2, "0");
+
+    dateTime = DateTime.parse(_daily.sunset.first);
+    _sunset = dateTime.hour.toString().padLeft(2, "0") +
+        ":" +
+        dateTime.minute.toString().padLeft(2, "0");
+
     notifyListeners();
+  }
+
+  void streamLocation() {
+    Location location = Location();
+
+    location.onLocationChanged.listen((LocationData currentLocation) async {
+      // 位置情報を基に地名を取得する
+      Map<String, dynamic> _locationJson =
+          await locationService.getLocationName(
+        latitude: currentLocation.latitude!,
+        longitude: currentLocation.longitude!,
+      );
+
+      // JSON配列を LocationNameData に変換する
+      LocationNameData _locationName = LocationNameData.fromJson(
+        json: _locationJson["response"],
+      );
+
+      // 画面の描画に必要なデータを取り出し、保管する
+      _prefecture = _locationName.location.first.prefecture;
+      _city = _locationName.location.first.city;
+
+      // 緯度／経度を保管する
+      _latitude = currentLocation.latitude!;
+      _longitude = currentLocation.longitude!;
+      getWeekWeather();
+      notifyListeners();
+    });
+  }
+
+  /// 天候，天候アイコンをセットする
+  void setWeatherInfo({required Daily weatherInfo}) {
+    switch (weatherInfo.weathercode.first) {
+      case 0:
+        _weatherIcon = WeatherIcons.day_sunny;
+        _weatherIconColor = Colors.orange;
+        _weatherText = "快晴";
+        break;
+      case 1:
+        _weatherIcon = WeatherIcons.day_sunny;
+        _weatherIconColor = Colors.orange;
+        _weatherText = "晴れ";
+        break;
+      case 2:
+        _weatherIcon = WeatherIcons.day_sunny_overcast;
+        _weatherIconColor = Colors.grey;
+        _weatherText = "晴れ時々曇り";
+        break;
+      case 3:
+        _weatherIcon = WeatherIcons.cloudy;
+        _weatherIconColor = Colors.grey;
+        _weatherText = "くもり";
+        break;
+      case 45:
+        _weatherIcon = WeatherIcons.day_fog;
+        _weatherIconColor = Colors.grey;
+        _weatherText = "霧";
+        break;
+      case 48:
+        _weatherIcon = WeatherIcons.fog;
+        _weatherIconColor = Colors.grey;
+        _weatherText = "濃霧";
+        break;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+        _weatherIcon = WeatherIcons.day_showers;
+        _weatherIconColor = Colors.blue;
+        _weatherText = "霧雨";
+        break;
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+        _weatherIcon = WeatherIcons.rain;
+        _weatherIconColor = Colors.blue;
+        _weatherText = "雨";
+        break;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+        _weatherIcon = WeatherIcons.snow;
+        _weatherIconColor = Colors.white;
+        _weatherText = "雪";
+        break;
+      case 80:
+      case 81:
+      case 82:
+        _weatherIcon = WeatherIcons.day_rain;
+        _weatherIconColor = Colors.blue;
+        _weatherText = "にわか雨";
+        break;
+      case 85:
+      case 86:
+        _weatherIcon = WeatherIcons.day_rain_mix;
+        _weatherIconColor = Colors.white;
+        _weatherText = "みぞれ雪";
+        break;
+      default:
+        _weatherIcon = WeatherIcons.na;
+        _weatherIconColor = Colors.white;
+        _weatherText = "不明";
+    }
   }
 }
 
 class WeekWeather {
   WeekWeather({
-    required this.generationtimeMs,
-    required this.longitude,
+    this.generationtimeMs = 0.0,
+    this.longitude = 0.0,
     required this.dailyUnits,
-    required this.elevation,
-    required this.latitude,
-    required this.utcOffsetSeconds,
+    this.elevation = 0.0,
+    this.latitude = 0.0,
+    this.utcOffsetSeconds = 0,
     required this.daily,
   });
 
-  double generationtimeMs = 0.0;
-  double longitude = 0.0;
-  DailyUnits dailyUnits;
-  double elevation = 0.0;
-  double latitude = 0.0;
-  int utcOffsetSeconds = 0;
-  Daily daily;
+  double generationtimeMs;
+  double longitude;
+  DailyUnits dailyUnits = DailyUnits();
+  double elevation;
+  double latitude;
+  int utcOffsetSeconds;
+  Daily daily = Daily();
 
   factory WeekWeather.fromJson(Map<String, dynamic> json) => WeekWeather(
         generationtimeMs: json["generationtime_ms"].toDouble(),
@@ -95,20 +232,20 @@ class WeekWeather {
 
 class Daily {
   Daily({
-    required this.sunset,
-    required this.sunrise,
-    required this.temperature2MMin,
-    required this.temperature2MMax,
-    required this.time,
-    required this.weathercode,
+    this.sunset = const [],
+    this.sunrise = const [],
+    this.temperature2MMin = const [],
+    this.temperature2MMax = const [],
+    this.time = const [],
+    this.weathercode = const [],
   });
 
-  List<String> sunset = [];
-  List<String> sunrise = [];
-  List<double> temperature2MMin = [];
-  List<double> temperature2MMax = [];
-  List<DateTime> time = [];
-  List<int> weathercode = [];
+  List<String> sunset;
+  List<String> sunrise;
+  List<double> temperature2MMin;
+  List<double> temperature2MMax;
+  List<DateTime> time;
+  List<int> weathercode;
 
   factory Daily.fromJson(Map<String, dynamic> json) => Daily(
         sunset: List<String>.from(json["sunset"].map((x) => x)),
@@ -136,20 +273,20 @@ class Daily {
 
 class DailyUnits {
   DailyUnits({
-    required this.sunset,
-    required this.sunrise,
-    required this.temperature2MMin,
-    required this.temperature2MMax,
-    required this.time,
-    required this.weathercode,
+    this.sunset = "",
+    this.sunrise = "",
+    this.temperature2MMin = "",
+    this.temperature2MMax = "",
+    this.time = "",
+    this.weathercode = "",
   });
 
-  String sunset = "";
-  String sunrise = "";
-  String temperature2MMin = "";
-  String temperature2MMax = "";
-  String time = "";
-  String weathercode = "";
+  String sunset;
+  String sunrise;
+  String temperature2MMin;
+  String temperature2MMax;
+  String time;
+  String weathercode;
 
   factory DailyUnits.fromJson(Map<String, dynamic> json) => DailyUnits(
         sunset: json["sunset"],
@@ -170,16 +307,17 @@ class DailyUnits {
       };
 }
 
-class MyLocationData {
-  MyLocationData({
+class LocationNameData {
+  LocationNameData({
     required this.location,
   });
 
-  List<MyLocation> location;
+  List<LocationName> location;
 
-  factory MyLocationData.fromJson(Map<String, dynamic> json) => MyLocationData(
-        location: List<MyLocation>.from(
-            json["location"].map((x) => MyLocation.fromJson(x))),
+  factory LocationNameData.fromJson({required Map<String, dynamic> json}) =>
+      LocationNameData(
+        location: List<LocationName>.from(
+            json["location"].map((x) => LocationName.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -187,8 +325,8 @@ class MyLocationData {
       };
 }
 
-class MyLocation {
-  MyLocation({
+class LocationName {
+  LocationName({
     this.prefecture = "",
     this.city = "",
     this.cityKana = "",
@@ -202,7 +340,7 @@ class MyLocation {
   String town;
   String townKana;
 
-  factory MyLocation.fromJson(Map<String, dynamic> json) => MyLocation(
+  factory LocationName.fromJson(Map<String, dynamic> json) => LocationName(
         city: json["city"],
         cityKana: json["city_kana"],
         town: json["town"],

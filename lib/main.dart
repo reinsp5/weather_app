@@ -1,5 +1,6 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/home/home_provider.dart';
 import 'package:weather_app/main_provider.dart';
@@ -22,6 +23,11 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          textTheme: GoogleFonts.sawarabiGothicTextTheme(
+            Theme.of(context).textTheme,
+          ),
+        ),
         title: 'Flutter Demo',
         home: MainPage(),
       ),
@@ -43,9 +49,11 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final MainProvider mainProvider = Provider.of<MainProvider>(context);
     return Scaffold(
+      backgroundColor: Colors.grey.shade900,
       body: _pages[mainProvider.pageIndex],
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle,
+        cornerRadius: 15.0,
         backgroundColor: Colors.black,
         items: const [
           TabItem(icon: Icons.map, title: "全国"),
