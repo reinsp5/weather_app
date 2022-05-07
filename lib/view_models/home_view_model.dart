@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:weather_app/commons/location_service.dart';
-import 'package:weather_app/commons/weather_service.dart';
+import 'package:weather_app/utils/location_service.dart';
+import 'package:weather_app/utils/weather_service.dart';
+import 'package:weather_app/models/location_model.dart';
+import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
-class HomeProvider with ChangeNotifier {
+class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
   String _prefecture = ""; // 都道府県
   String _city = ""; // 市区町村
@@ -15,6 +18,8 @@ class HomeProvider with ChangeNotifier {
   String _temperature2MMax = "  . "; // 最高気温
   String _sunrise = "  :  "; // 日の出
   String _sunset = "  :  "; // 日の入
+  bool _isLoading = true; // ローディング画面 ＯＮ／ＯＦＦ
+  String _dateTime = DateFormat("yyyy年MM月dd日").format(DateTime.now());
 
   double _latitude = 0.0;
   double _longitude = 0.0;
@@ -33,6 +38,8 @@ class HomeProvider with ChangeNotifier {
   String get temperature2MMax => _temperature2MMax;
   String get sunrise => _sunrise;
   String get sunset => _sunset;
+  bool get isLoading => _isLoading;
+  String get dateTime => _dateTime;
 
   /// LocationService の getGpsPosition を呼び出し、位置情報を取得する。
   Future<void> getLocAsGps() async {
@@ -57,8 +64,6 @@ class HomeProvider with ChangeNotifier {
     // 緯度／経度を保管する
     _latitude = _locationData.latitude!;
     _longitude = _locationData.longitude!;
-
-    notifyListeners();
   }
 
   /// 一週間先までの天気予報を取得する
@@ -78,7 +83,7 @@ class HomeProvider with ChangeNotifier {
     _sunset = dateTime.hour.toString().padLeft(2, "0") +
         ":" +
         dateTime.minute.toString().padLeft(2, "0");
-
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -106,7 +111,6 @@ class HomeProvider with ChangeNotifier {
       _latitude = currentLocation.latitude!;
       _longitude = currentLocation.longitude!;
       getWeekWeather();
-      notifyListeners();
     });
   }
 
@@ -188,171 +192,4 @@ class HomeProvider with ChangeNotifier {
         _weatherText = "不明";
     }
   }
-}
-
-class WeekWeather {
-  WeekWeather({
-    this.generationtimeMs = 0.0,
-    this.longitude = 0.0,
-    required this.dailyUnits,
-    this.elevation = 0.0,
-    this.latitude = 0.0,
-    this.utcOffsetSeconds = 0,
-    required this.daily,
-  });
-
-  double generationtimeMs;
-  double longitude;
-  DailyUnits dailyUnits = DailyUnits();
-  double elevation;
-  double latitude;
-  int utcOffsetSeconds;
-  Daily daily = Daily();
-
-  factory WeekWeather.fromJson(Map<String, dynamic> json) => WeekWeather(
-        generationtimeMs: json["generationtime_ms"].toDouble(),
-        longitude: json["longitude"].toDouble(),
-        dailyUnits: DailyUnits.fromJson(json["daily_units"]),
-        elevation: json["elevation"].toDouble(),
-        latitude: json["latitude"].toDouble(),
-        utcOffsetSeconds: json["utc_offset_seconds"],
-        daily: Daily.fromJson(json["daily"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "generationtime_ms": generationtimeMs,
-        "longitude": longitude,
-        "daily_units": dailyUnits.toJson(),
-        "elevation": elevation,
-        "latitude": latitude,
-        "utc_offset_seconds": utcOffsetSeconds,
-        "daily": daily.toJson(),
-      };
-}
-
-class Daily {
-  Daily({
-    this.sunset = const [],
-    this.sunrise = const [],
-    this.temperature2MMin = const [],
-    this.temperature2MMax = const [],
-    this.time = const [],
-    this.weathercode = const [],
-  });
-
-  List<String> sunset;
-  List<String> sunrise;
-  List<double> temperature2MMin;
-  List<double> temperature2MMax;
-  List<DateTime> time;
-  List<int> weathercode;
-
-  factory Daily.fromJson(Map<String, dynamic> json) => Daily(
-        sunset: List<String>.from(json["sunset"].map((x) => x)),
-        sunrise: List<String>.from(json["sunrise"].map((x) => x)),
-        temperature2MMin: List<double>.from(
-            json["temperature_2m_min"].map((x) => x.toDouble())),
-        temperature2MMax: List<double>.from(
-            json["temperature_2m_max"].map((x) => x.toDouble())),
-        time: List<DateTime>.from(json["time"].map((x) => DateTime.parse(x))),
-        weathercode: List<int>.from(json["weathercode"].map((x) => x)),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "sunset": List<dynamic>.from(sunset.map((x) => x)),
-        "sunrise": List<dynamic>.from(sunrise.map((x) => x)),
-        "temperature_2m_min":
-            List<dynamic>.from(temperature2MMin.map((x) => x)),
-        "temperature_2m_max":
-            List<dynamic>.from(temperature2MMax.map((x) => x)),
-        "time": List<dynamic>.from(time.map((x) =>
-            "${x.year.toString().padLeft(4, '0')}-${x.month.toString().padLeft(2, '0')}-${x.day.toString().padLeft(2, '0')}")),
-        "weathercode": List<dynamic>.from(weathercode.map((x) => x)),
-      };
-}
-
-class DailyUnits {
-  DailyUnits({
-    this.sunset = "",
-    this.sunrise = "",
-    this.temperature2MMin = "",
-    this.temperature2MMax = "",
-    this.time = "",
-    this.weathercode = "",
-  });
-
-  String sunset;
-  String sunrise;
-  String temperature2MMin;
-  String temperature2MMax;
-  String time;
-  String weathercode;
-
-  factory DailyUnits.fromJson(Map<String, dynamic> json) => DailyUnits(
-        sunset: json["sunset"],
-        sunrise: json["sunrise"],
-        temperature2MMin: json["temperature_2m_min"],
-        temperature2MMax: json["temperature_2m_max"],
-        time: json["time"],
-        weathercode: json["weathercode"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "sunset": sunset,
-        "sunrise": sunrise,
-        "temperature_2m_min": temperature2MMin,
-        "temperature_2m_max": temperature2MMax,
-        "time": time,
-        "weathercode": weathercode,
-      };
-}
-
-class LocationNameData {
-  LocationNameData({
-    required this.location,
-  });
-
-  List<LocationName> location;
-
-  factory LocationNameData.fromJson({required Map<String, dynamic> json}) =>
-      LocationNameData(
-        location: List<LocationName>.from(
-            json["location"].map((x) => LocationName.fromJson(x))),
-      );
-
-  Map<String, dynamic> toJson() => {
-        "location": List<dynamic>.from(location.map((x) => x.toJson())),
-      };
-}
-
-class LocationName {
-  LocationName({
-    this.prefecture = "",
-    this.city = "",
-    this.cityKana = "",
-    this.town = "",
-    this.townKana = "",
-  });
-
-  String prefecture;
-  String city;
-  String cityKana;
-  String town;
-  String townKana;
-
-  factory LocationName.fromJson(Map<String, dynamic> json) => LocationName(
-        city: json["city"],
-        cityKana: json["city_kana"],
-        town: json["town"],
-        townKana: json["town_kana"],
-        prefecture: json["prefecture"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "city": city,
-        "city_kana": cityKana,
-        "town": town,
-        "town_kana": townKana,
-        "prefecture": prefecture,
-      };
 }
