@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         home: DefaultTabController(
           length: pages.length,
-          child: MainPage(),
+          child: const MainPage(),
           initialIndex: pageIndex,
         ),
       ),
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  MainPage({Key? key}) : super(key: key);
+  const MainPage({Key? key}) : super(key: key);
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -59,7 +59,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
-    MainViewModel mainViewModel = Provider.of<MainViewModel>(context);
     return Scaffold(
       backgroundColor: Colors.grey.shade900,
       body: TabBarView(

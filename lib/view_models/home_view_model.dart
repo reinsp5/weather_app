@@ -1,15 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
 import 'package:weather_app/utils/location_service.dart';
 import 'package:weather_app/utils/weather_service.dart';
-import 'package:weather_app/models/location_model.dart';
 import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
 class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
-  String _prefecture = ""; // 都道府県
+  String _state = ""; // 都道府県
   String _city = ""; // 市区町村
   IconData _weatherIcon = WeatherIcons.na; // 天候アイコン
   Color _weatherIconColor = Colors.white;
@@ -19,7 +21,7 @@ class HomeViewModel extends ChangeNotifier {
   String _sunrise = "  :  "; // 日の出
   String _sunset = "  :  "; // 日の入
   bool _isLoading = true; // ローディング画面 ＯＮ／ＯＦＦ
-  String _dateTime = DateFormat("yyyy年MM月dd日").format(DateTime.now());
+  final String _dateTime = DateFormat("yyyy年MM月dd日").format(DateTime.now());
 
   double _latitude = 0.0;
   double _longitude = 0.0;
@@ -29,7 +31,7 @@ class HomeViewModel extends ChangeNotifier {
 
   Daily _daily = Daily();
 
-  String get prefecture => _prefecture;
+  String get state => _state;
   String get city => _city;
   IconData get weatherIcon => _weatherIcon;
   Color get weatherIconColor => _weatherIconColor;
@@ -41,35 +43,34 @@ class HomeViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get dateTime => _dateTime;
 
-  /// LocationService の getGpsPosition を呼び出し、位置情報を取得する。
+  /// 現在位置を取得し、保管する。
   Future<void> getLocAsGps() async {
     // 位置情報を取得取得する
-    LocationData _locationData = await locationService.getGpsPosition();
+    Position _position = await locationService.getCurrentPosition();
 
     // 位置情報を基に地名を取得する
-    Map<String, dynamic> _locationJson = await locationService.getLocationName(
-      latitude: _locationData.latitude!,
-      longitude: _locationData.longitude!,
-    );
+    Placemark _placemark =
+        await locationService.getCurrentPositionName(position: _position);
+    setLocationInfo(position: _position, placemark: _placemark);
+    getWeekWeather();
+    notifyListeners();
+  }
 
-    // JSON配列を LocationNameData に変換する
-    LocationNameData _locationName = LocationNameData.fromJson(
-      json: _locationJson["response"],
-    );
-
-    // 画面の描画に必要なデータを取り出し、保管する
-    _prefecture = _locationName.location.first.prefecture;
-    _city = _locationName.location.first.city;
-
+  /// 現在位置を保存する
+  void setLocationInfo(
+      {required Position position, required Placemark placemark}) {
     // 緯度／経度を保管する
-    _latitude = _locationData.latitude!;
-    _longitude = _locationData.longitude!;
+    _latitude = position.latitude;
+    _longitude = position.longitude;
+    // 画面の描画に必要なデータを取り出し、保管する
+    _state = placemark.administrativeArea ?? "";
+    _city = placemark.locality ?? "";
   }
 
   /// 一週間先までの天気予報を取得する
   Future<void> getWeekWeather() async {
     WeekWeather _weekWeather = WeekWeather.fromJson(
-        await weatherService.getWeekWeather(_latitude, _longitude));
+        await weatherService.getWeeklyWeather(_latitude, _longitude));
     _daily = _weekWeather.daily;
     setWeatherInfo(weatherInfo: _daily);
     _temperature2MMin = _daily.temperature2MMin.first.toString();
@@ -87,30 +88,20 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void streamLocation() {
-    Location location = Location();
+  void streamLocation() async {
+    LocationSettings settings = const LocationSettings(distanceFilter: 500);
 
-    location.onLocationChanged.listen((LocationData currentLocation) async {
-      // 位置情報を基に地名を取得する
-      Map<String, dynamic> _locationJson =
-          await locationService.getLocationName(
-        latitude: currentLocation.latitude!,
-        longitude: currentLocation.longitude!,
-      );
-
-      // JSON配列を LocationNameData に変換する
-      LocationNameData _locationName = LocationNameData.fromJson(
-        json: _locationJson["response"],
-      );
-
-      // 画面の描画に必要なデータを取り出し、保管する
-      _prefecture = _locationName.location.first.prefecture;
-      _city = _locationName.location.first.city;
-
-      // 緯度／経度を保管する
-      _latitude = currentLocation.latitude!;
-      _longitude = currentLocation.longitude!;
-      getWeekWeather();
+    // ignore: unused_local_variable
+    StreamSubscription<Position> positionStream =
+        Geolocator.getPositionStream(locationSettings: settings)
+            .listen((Position? position) async {
+      if (position != null) {
+        Placemark placemark =
+            await locationService.getCurrentPositionName(position: position);
+        setLocationInfo(position: position, placemark: placemark);
+        getWeekWeather();
+        notifyListeners();
+      }
     });
   }
 

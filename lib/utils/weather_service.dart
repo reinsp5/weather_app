@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class WeatherService {
   final String _domain = "api.open-meteo.com";
 
-  Future<dynamic> getWeekWeather(latitude, longitude) async {
+  Future<dynamic> getWeeklyWeather(latitude, longitude) async {
     Map<String, dynamic> _parms = {
       "latitude": latitude.toString(),
       "longitude": longitude.toString(),

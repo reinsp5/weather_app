@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
 class WeeklyView extends StatelessWidget {
@@ -36,10 +38,10 @@ class WeeklyView extends StatelessWidget {
 
     for (var i = 0; i < 7; i++) {
       Widget widget = Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            BoxedIcon(
+            const BoxedIcon(
               WeatherIcons.day_sunny,
               color: Colors.white,
               size: 50,
@@ -51,7 +53,7 @@ class WeeklyView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "晴れ",
                     style: TextStyle(
                       color: Colors.white,
@@ -99,47 +101,51 @@ class _WeeklyHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      height: 200,
-      color: Colors.black,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "2022/05/10",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 25,
-            ),
-          ),
-          Text(
-            // 市区町村
-            "札幌市中央区",
-            style: TextStyle(
-              color: Colors.grey[50],
-              fontSize: 45,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            // 都道府県
-            "北海道",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-            ),
-          ),
-        ],
+    HomeViewModel homeViewModel =
+        Provider.of<HomeViewModel>(context, listen: false);
+    return SafeArea(
+      child: Container(
+        height: 200,
+        color: Colors.black,
+        child: Consumer<HomeViewModel>(builder: (context, provider, _) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                homeViewModel.dateTime,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                ),
+              ),
+              Text(
+                // 市区町村
+                homeViewModel.city,
+                style: TextStyle(
+                  color: Colors.grey[50],
+                  fontSize: 45,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                // 都道府県
+                homeViewModel.state,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
 
   @override
-  // TODO: implement maxExtent
   double get maxExtent => 200;
 
   @override
-  // TODO: implement minExtent
   double get minExtent => 150;
 
   @override
