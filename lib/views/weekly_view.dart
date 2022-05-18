@@ -108,34 +108,37 @@ class _WeeklyHeaderDelegate extends SliverPersistentHeaderDelegate {
         height: 200,
         color: Colors.black,
         child: Consumer<HomeViewModel>(builder: (context, provider, _) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                homeViewModel.dateTime,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
+          return Padding(
+            padding: const EdgeInsets.only(top: 16.0, left: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  homeViewModel.dateTime,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 25,
+                  ),
                 ),
-              ),
-              Text(
-                // 市区町村
-                homeViewModel.city,
-                style: TextStyle(
-                  color: Colors.grey[50],
-                  fontSize: 45,
-                  fontWeight: FontWeight.bold,
+                Text(
+                  // 市区町村
+                  homeViewModel.city,
+                  style: TextStyle(
+                    color: Colors.grey[50],
+                    fontSize: 45,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                // 都道府県
-                homeViewModel.state,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                Text(
+                  // 都道府県
+                  homeViewModel.state,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }),
       ),

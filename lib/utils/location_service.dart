@@ -28,6 +28,8 @@ class LocationService {
 
   /// 現在位置を取得する
   Future<Position> getCurrentPosition() async {
+    if (!await checkPermission()) return Future.error(false);
+
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
   }
