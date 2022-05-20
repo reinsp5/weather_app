@@ -12,7 +12,7 @@ class WeatherService {
     };
     Uri _uri = Uri.https(_domain, '/v1/forecast', _parms);
     String _url = _uri.toString() +
-        "&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset";
+        "&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,windspeed_10m_max";
     http.Response _response = await http.get(Uri.parse(_url));
     return jsonDecode(_response.body);
   }

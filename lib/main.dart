@@ -1,5 +1,6 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_nord_theme/flutter_nord_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
@@ -60,14 +61,14 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: NordColors.polarNight.darkest,
       body: TabBarView(
         children: pages,
       ),
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle,
         cornerRadius: 15.0,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.black54,
         items: const [
           TabItem(icon: Icons.view_week, title: "週間天気"),
           TabItem(icon: Icons.home, title: "ホーム"),

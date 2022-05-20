@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_nord_theme/flutter_nord_theme.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_icons/weather_icons.dart';
@@ -46,9 +48,9 @@ class HomeView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          homeViewModel.dateTime,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          DateFormat("yyyy年MM月dd日").format(DateTime.now()),
+                          style: TextStyle(
+                            color: NordColors.snowStorm.lightest,
                             fontSize: 25,
                           ),
                         ),
@@ -56,7 +58,7 @@ class HomeView extends StatelessWidget {
                           // 市区町村
                           homeViewModel.city,
                           style: TextStyle(
-                            color: Colors.grey[50],
+                            color: NordColors.snowStorm.lightest,
                             fontSize: 45,
                             fontWeight: FontWeight.bold,
                           ),
@@ -64,8 +66,8 @@ class HomeView extends StatelessWidget {
                         Text(
                           // 都道府県
                           homeViewModel.state,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: NordColors.snowStorm.lightest,
                             fontSize: 18,
                           ),
                         ),
@@ -77,16 +79,16 @@ class HomeView extends StatelessWidget {
                     children: [
                       BoxedIcon(
                         // 天候アイコン
-                        homeViewModel.weatherIcon,
+                        homeViewModel.weatherIcon.first,
                         size: 200,
-                        color: homeViewModel.weatherIconColor,
+                        color: homeViewModel.weatherIconColor.first,
                       ),
                       Text(
                         // 天候
-                        homeViewModel.weatherText,
+                        homeViewModel.weatherText.first,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.grey.shade50,
+                          color: NordColors.snowStorm.lightest,
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -102,7 +104,7 @@ class HomeView extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: Container(
-                            color: Colors.black,
+                            color: Colors.black54,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -115,7 +117,7 @@ class HomeView extends StatelessWidget {
                                           homeViewModel.temperature2MMax +
                                           "℃",
                                       style: TextStyle(
-                                        color: Colors.red.shade600,
+                                        color: NordColors.aurora.red,
                                         fontSize: 21,
                                       ),
                                     ),
@@ -130,7 +132,7 @@ class HomeView extends StatelessWidget {
                                           homeViewModel.temperature2MMin +
                                           "℃",
                                       style: TextStyle(
-                                        color: Colors.blue.shade600,
+                                        color: NordColors.frost.darkest,
                                         fontSize: 21,
                                       ),
                                     ),
@@ -139,17 +141,17 @@ class HomeView extends StatelessWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const BoxedIcon(
+                                    BoxedIcon(
                                       WeatherIcons.sunrise,
-                                      color: Colors.white,
+                                      color: NordColors.snowStorm.lightest,
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       child: Text(
                                         // 日の出時刻
                                         homeViewModel.sunrise,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: NordColors.snowStorm.lightest,
                                         ),
                                       ),
                                     ),
@@ -160,17 +162,17 @@ class HomeView extends StatelessWidget {
                                               horizontal: 8.0),
                                       child: Divider(),
                                     ),
-                                    const BoxedIcon(
+                                    BoxedIcon(
                                       WeatherIcons.sunset,
-                                      color: Colors.white,
+                                      color: NordColors.snowStorm.lightest,
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       child: Text(
                                         // 日の入時刻
                                         homeViewModel.sunset,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: NordColors.snowStorm.lightest,
                                         ),
                                       ),
                                     )

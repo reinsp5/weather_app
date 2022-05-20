@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_nord_theme/flutter_nord_theme.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
@@ -10,10 +13,9 @@ class WeeklyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: RefreshIndicator(
-        color: Colors.grey.shade900,
+        color: Colors.black54,
         onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 3));
-          debugPrint("refresh completed.");
+          await context.read<HomeViewModel>().getWeekWeather();
         },
         child: CustomScrollView(
           slivers: <Widget>[
@@ -21,11 +23,21 @@ class WeeklyView extends StatelessWidget {
               delegate: _WeeklyHeaderDelegate(),
             ),
             SliverList(
-              delegate: SliverChildListDelegate([
-                Column(
-                  children: columns(),
-                ),
-              ]),
+              delegate: SliverChildListDelegate(
+                [
+                  Column(
+                    children: columns(
+                        icons: context.select((HomeViewModel homeViewModel) =>
+                            homeViewModel.weatherIcon),
+                        colors: context.select((HomeViewModel homeViewModel) =>
+                            homeViewModel.weatherIconColor),
+                        texts: context.select((HomeViewModel homeViewModel) =>
+                            homeViewModel.weatherText),
+                        daily: context.select((HomeViewModel homeViewModel) =>
+                            homeViewModel.daily)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -33,17 +45,21 @@ class WeeklyView extends StatelessWidget {
     );
   }
 
-  List<Widget> columns() {
+  List<Widget> columns({
+    required List<IconData> icons,
+    required List<Color> colors,
+    required List<String> texts,
+    required Daily daily,
+  }) {
     List<Widget> columns = [];
-
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < texts.length - 1; i++) {
       Widget widget = Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            const BoxedIcon(
-              WeatherIcons.day_sunny,
-              color: Colors.white,
+            BoxedIcon(
+              icons[i],
+              color: colors[i],
               size: 50,
             ),
             Padding(
@@ -53,17 +69,34 @@ class WeeklyView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "晴れ",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 25,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat("yyyy年MM月dd日")
+                            .format(DateTime.now().add(Duration(days: i))),
+                        style: TextStyle(
+                          color: NordColors.snowStorm.lightest,
+                          fontSize: 18,
+                        ),
+                      ),
+                      VerticalDivider(
+                        color: Colors.grey.shade300,
+                        width: 8.0,
+                      ),
+                      Text(
+                        texts[i],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
                       Text(
-                        "最高：23℃",
+                        "最高：" + daily.temperature2MMax[i].toString() + "℃",
                         style: TextStyle(
                           color: Colors.red.shade600,
                         ),
@@ -73,7 +106,7 @@ class WeeklyView extends StatelessWidget {
                           left: 8.0,
                         ),
                         child: Text(
-                          "最低：19℃",
+                          "最低：" + daily.temperature2MMin[i].toString() + "℃",
                           style: TextStyle(
                             color: Colors.blue.shade600,
                           ),
@@ -106,20 +139,13 @@ class _WeeklyHeaderDelegate extends SliverPersistentHeaderDelegate {
     return SafeArea(
       child: Container(
         height: 200,
-        color: Colors.black,
+        color: Colors.black54,
         child: Consumer<HomeViewModel>(builder: (context, provider, _) {
           return Padding(
             padding: const EdgeInsets.only(top: 16.0, left: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  homeViewModel.dateTime,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 25,
-                  ),
-                ),
                 Text(
                   // 市区町村
                   homeViewModel.city,

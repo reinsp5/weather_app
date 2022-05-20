@@ -20,6 +20,7 @@ dependencies:
   convex_bottom_bar: ^3.0.0
   google_fonts: ^2.3.2
   intl: ^0.17.0
+  flutter_nord_theme: ^2.1.0
 
 dev_dependencies:
   flutter_test:
