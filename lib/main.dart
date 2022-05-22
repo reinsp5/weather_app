@@ -17,7 +17,7 @@ void main() {
 List<Widget> pages = [
   const WeeklyView(),
   const HomeView(),
-  const SettingsPage(),
+  const SettingsView(),
 ];
 
 int pageIndex = 1;
@@ -64,6 +64,7 @@ class _MainPageState extends State<MainPage> {
       backgroundColor: NordColors.polarNight.darkest,
       body: TabBarView(
         children: pages,
+        physics: const NeverScrollableScrollPhysics(),
       ),
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.fixedCircle,

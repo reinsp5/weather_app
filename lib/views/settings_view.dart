@@ -1,7 +1,12 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+import 'package:flutter/material.dart';
+import 'package:flutter_nord_theme/flutter_nord_theme.dart';
+
+import 'default_location_setting_view.dart';
+
+class SettingsView extends StatelessWidget {
+  const SettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -9,19 +14,56 @@ class SettingsPage extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         height: double.infinity,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                "設定画面",
+            ListTile(
+              title: Text(
+                "デフォルト地域設定",
                 style: TextStyle(
-                  color: Colors.grey[50],
-                  fontSize: 32,
+                  color: NordColors.snowStorm.lightest,
+                  fontSize: 20,
                 ),
               ),
+              leading: Icon(
+                Icons.location_pin,
+                color: NordColors.snowStorm.lightest,
+                size: 30,
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DefaultLocationSettingView(),
+                ),
+              ),
+            ),
+            Divider(
+              color: NordColors.snowStorm.lightest,
+            ),
+            ListTile(
+              title: Text(
+                "Licence",
+                style: TextStyle(
+                  color: NordColors.snowStorm.lightest,
+                  fontSize: 20,
+                ),
+              ),
+              leading: Icon(
+                Icons.info_outline,
+                color: NordColors.snowStorm.lightest,
+                size: 30,
+              ),
+              onTap: () => showAboutDialog(
+                context: context,
+                applicationName: "お天気アプリ",
+                applicationLegalese: "Flutter学習のために作成したアプリです。",
+                applicationVersion: "v1.0.0",
+                applicationIcon: FlutterLogo(
+                  size: 40,
+                ),
+              ),
+            ),
+            Divider(
+              color: NordColors.snowStorm.lightest,
             ),
           ],
         ),

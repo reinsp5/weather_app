@@ -52,7 +52,7 @@ class WeeklyView extends StatelessWidget {
     required Daily daily,
   }) {
     List<Widget> columns = [];
-    for (var i = 0; i < texts.length - 1; i++) {
+    for (var i = 0; i < texts.length; i++) {
       Widget widget = Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -98,7 +98,7 @@ class WeeklyView extends StatelessWidget {
                       Text(
                         "最高：" + daily.temperature2MMax[i].toString() + "℃",
                         style: TextStyle(
-                          color: Colors.red.shade600,
+                          color: NordColors.aurora.red,
                         ),
                       ),
                       Padding(
@@ -108,7 +108,7 @@ class WeeklyView extends StatelessWidget {
                         child: Text(
                           "最低：" + daily.temperature2MMin[i].toString() + "℃",
                           style: TextStyle(
-                            color: Colors.blue.shade600,
+                            color: NordColors.frost.darkest,
                           ),
                         ),
                       ),
@@ -138,7 +138,7 @@ class _WeeklyHeaderDelegate extends SliverPersistentHeaderDelegate {
         Provider.of<HomeViewModel>(context, listen: false);
     return SafeArea(
       child: Container(
-        height: 200,
+        height: 150,
         color: Colors.black54,
         child: Consumer<HomeViewModel>(builder: (context, provider, _) {
           return Padding(
@@ -172,7 +172,7 @@ class _WeeklyHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 200;
+  double get maxExtent => 150;
 
   @override
   double get minExtent => 150;
