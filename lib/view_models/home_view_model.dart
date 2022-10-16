@@ -6,6 +6,7 @@ import 'package:flutter_nord_theme/flutter_nord_theme.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:weather/weather.dart';
 import 'package:weather_app/utils/location_service.dart';
 import 'package:weather_app/utils/weather_service.dart';
 import 'package:weather_app/models/weather_model.dart';
@@ -13,6 +14,7 @@ import 'package:weather_icons/weather_icons.dart';
 
 class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
+  late Weather _weather;
   String _state = ""; // 都道府県
   String _city = ""; // 市区町村
   List<IconData> _weatherIcon = []; // 天候アイコン
@@ -31,15 +33,17 @@ class HomeViewModel extends ChangeNotifier {
   WeatherService weatherService = WeatherService();
 
   Daily _daily = Daily(
-      precipitationSum: [],
-      sunrise: [],
-      sunset: [],
-      temperature2MMax: [],
-      temperature2MMin: [],
-      time: [],
-      weathercode: [],
-      windspeed10MMax: []);
+    precipitationSum: [],
+    sunrise: [],
+    sunset: [],
+    temperature2MMax: [],
+    temperature2MMin: [],
+    time: [],
+    weathercode: [],
+    windspeed10MMax: [],
+  );
 
+  Weather get weather => _weather;
   String get state => _state;
   String get city => _city;
   List<IconData> get weatherIcon => _weatherIcon;
@@ -74,6 +78,16 @@ class HomeViewModel extends ChangeNotifier {
     // 画面の描画に必要なデータを取り出し、保管する
     _state = placemark.administrativeArea ?? "";
     _city = placemark.locality ?? "";
+  }
+
+  /// 現在地の天気取得
+  void setCurrentWeather() async {
+    _weather = await weatherService.getCurrentWeatherByLocation(
+      lat: _latitude,
+      lon: _longitude,
+    );
+    _isLoading = false;
+    notifyListeners();
   }
 
   /// 一週間先までの天気予報を取得する

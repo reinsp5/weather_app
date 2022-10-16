@@ -14,7 +14,8 @@ class HomeView extends StatelessWidget {
     HomeViewModel homeViewModel =
         Provider.of<HomeViewModel>(context, listen: false);
     homeViewModel.getLocAsGps().then((value) {
-      homeViewModel.getWeekWeather();
+      homeViewModel.setCurrentWeather();
+      // homeViewModel.getWeekWeather();
       homeViewModel.streamLocation();
     });
 
@@ -131,14 +132,14 @@ class WeatherWidget extends StatelessWidget {
                       fit: BoxFit.contain,
                       child: Icon(
                         // 天候アイコン
-                        homeViewModel.weatherIcon.first,
-                        color: homeViewModel.weatherIconColor.first,
+                        WeatherIcons.cloud,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                   Text(
                     // 天候
-                    homeViewModel.weatherText.first,
+                    homeViewModel.weather.weatherMain!,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: NordColors.snowStorm.lightest,
