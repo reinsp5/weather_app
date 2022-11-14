@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_nord_theme/flutter_nord_theme.dart';
+import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -15,11 +15,10 @@ import 'package:weather_icons/weather_icons.dart';
 class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
   late Weather _weather;
+  late Icon _weatherIcon; // 天候アイコン
   String _state = ""; // 都道府県
   String _city = ""; // 市区町村
-  List<IconData> _weatherIcon = []; // 天候アイコン
-  List<Color> _weatherIconColor = [];
-  List<String> _weatherText = []; // 天候
+  String _weatherText = ""; // 天候
   String _temperature2MMin = "  . "; // 最低気温
   String _temperature2MMax = "  . "; // 最高気温
   String _sunrise = "  :  "; // 日の出
@@ -28,6 +27,8 @@ class HomeViewModel extends ChangeNotifier {
 
   double _latitude = 0.0;
   double _longitude = 0.0;
+
+  WeatherType _weatherType = WeatherType.sunny;
 
   LocationService locationService = LocationService();
   WeatherService weatherService = WeatherService();
@@ -46,15 +47,16 @@ class HomeViewModel extends ChangeNotifier {
   Weather get weather => _weather;
   String get state => _state;
   String get city => _city;
-  List<IconData> get weatherIcon => _weatherIcon;
-  List<Color> get weatherIconColor => _weatherIconColor;
-  List<String> get weatherText => _weatherText;
+  Icon get weatherIcon => _weatherIcon;
+  // List<Color> get weatherIconColor => _weatherIconColor;
+  String get weatherText => _weatherText;
   String get temperature2MMin => _temperature2MMin;
   String get temperature2MMax => _temperature2MMax;
   String get sunrise => _sunrise;
   String get sunset => _sunset;
   bool get isLoading => _isLoading;
   Daily get daily => _daily;
+  WeatherType get weatherType => _weatherType;
 
   /// 現在位置を取得し、保管する。
   Future<void> getLocAsGps() async {
@@ -65,8 +67,9 @@ class HomeViewModel extends ChangeNotifier {
     Placemark _placemark =
         await locationService.getCurrentPositionName(position: _position);
     setLocationInfo(position: _position, placemark: _placemark);
-    getWeekWeather();
-    notifyListeners();
+
+    await setCurrentWeather();
+    streamLocation();
   }
 
   /// 現在位置を保存する
@@ -81,43 +84,45 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   /// 現在地の天気取得
-  void setCurrentWeather() async {
+  Future<void> setCurrentWeather() async {
     _weather = await weatherService.getCurrentWeatherByLocation(
       lat: _latitude,
       lon: _longitude,
     );
-    _isLoading = false;
+    setWeatherInfo(
+      weathercode: _weather.weatherConditionCode!,
+    );
     notifyListeners();
   }
 
   /// 一週間先までの天気予報を取得する
-  Future<void> getWeekWeather() async {
-    WeeklyWeather _weekWeather = WeeklyWeather.fromJson(
-        await weatherService.getWeeklyWeather(_latitude, _longitude));
-    _daily = _weekWeather.daily;
+  // Future<void> getWeekWeather() async {
+  //   WeeklyWeather _weekWeather = WeeklyWeather.fromJson(
+  //       await weatherService.getWeeklyWeather(_latitude, _longitude));
+  //   _daily = _weekWeather.daily;
 
-    _weatherIcon = [];
-    _weatherIconColor = [];
-    _weatherText = [];
-    log(_daily.weathercode.toString());
-    for (var element in _daily.weathercode) {
-      setWeatherInfo(weathercode: element);
-    }
+  //   _weatherIcon = [];
+  //   _weatherIconColor = [];
+  //   _weatherText = [];
+  //   log(_daily.weathercode.toString());
+  //   for (var element in _daily.weathercode) {
+  //     setWeatherInfo(weathercode: element);
+  //   }
 
-    _temperature2MMin = _daily.temperature2MMin.first.toString();
-    _temperature2MMax = _daily.temperature2MMax.first.toString();
-    DateTime dateTime = DateTime.parse(_daily.sunrise.first);
-    _sunrise = dateTime.hour.toString().padLeft(2, "0") +
-        ":" +
-        dateTime.minute.toString().padLeft(2, "0");
+  //   _temperature2MMin = _daily.temperature2MMin.first.toString();
+  //   _temperature2MMax = _daily.temperature2MMax.first.toString();
+  //   DateTime dateTime = DateTime.parse(_daily.sunrise.first);
+  //   _sunrise = dateTime.hour.toString().padLeft(2, "0") +
+  //       ":" +
+  //       dateTime.minute.toString().padLeft(2, "0");
 
-    dateTime = DateTime.parse(_daily.sunset.first);
-    _sunset = dateTime.hour.toString().padLeft(2, "0") +
-        ":" +
-        dateTime.minute.toString().padLeft(2, "0");
-    _isLoading = false;
-    notifyListeners();
-  }
+  //   dateTime = DateTime.parse(_daily.sunset.first);
+  //   _sunset = dateTime.hour.toString().padLeft(2, "0") +
+  //       ":" +
+  //       dateTime.minute.toString().padLeft(2, "0");
+  //   _isLoading = false;
+  //   notifyListeners();
+  // }
 
   void streamLocation() async {
     LocationSettings settings = const LocationSettings(distanceFilter: 500);
@@ -130,8 +135,7 @@ class HomeViewModel extends ChangeNotifier {
         Placemark placemark =
             await locationService.getCurrentPositionName(position: position);
         setLocationInfo(position: position, placemark: placemark);
-        getWeekWeather();
-        notifyListeners();
+        await setCurrentWeather();
       }
     });
   }
@@ -139,90 +143,132 @@ class HomeViewModel extends ChangeNotifier {
   /// 天候，天候アイコンをセットする
   void setWeatherInfo({required int weathercode}) {
     switch (weathercode) {
-      case 0:
-        _weatherIcon.add(WeatherIcons.day_sunny);
-        _weatherIconColor.add(NordColors.aurora.orange);
-        _weatherText.add("快晴");
+      // OpenWeatherAPI
+      // 雷雨
+      case 200:
+      case 201:
+      case 202:
+      case 210:
+      case 211:
+      case 212:
+      case 221:
+      case 230:
+      case 231:
+      case 232:
+        _weatherIcon = Icon(
+          WeatherIcons.thunderstorm,
+          color: NordColors.aurora.yellow,
+        );
+        _weatherText = "雷雨";
+        _weatherType = WeatherType.thunder;
         break;
-      case 1:
-        _weatherIcon.add(WeatherIcons.day_sunny);
-        _weatherIconColor.add(NordColors.aurora.orange);
-        _weatherText.add("晴れ");
+      // 霧雨
+      case 300:
+      case 301:
+      case 302:
+      case 310:
+      case 311:
+      case 312:
+      case 313:
+      case 314:
+      case 321:
+        _weatherIcon = Icon(
+          WeatherIcons.day_showers,
+          color: NordColors.frost.darkest,
+        );
+        _weatherText = "霧雨";
+        _weatherType = WeatherType.lightRainy;
         break;
-      case 2:
-        _weatherIcon.add(WeatherIcons.day_sunny_overcast);
-        _weatherIconColor.add(NordColors.snowStorm.medium);
-        _weatherText.add("晴れ時々くもり");
+      // 雨
+      case 500:
+      case 501:
+      case 502:
+      case 503:
+      case 504:
+      case 511:
+      case 520:
+      case 521:
+      case 522:
+      case 531:
+        _weatherIcon = Icon(
+          WeatherIcons.fog,
+          color: NordColors.frost.darkest,
+        );
+        _weatherText = "雨";
+        _weatherType = WeatherType.middleRainy;
         break;
-      case 3:
-        _weatherIcon.add(WeatherIcons.cloudy);
-        _weatherIconColor.add(NordColors.snowStorm.medium);
-        _weatherText.add("くもり");
+      // 雪
+      case 600:
+      case 601:
+      case 602:
+      case 611:
+      case 612:
+      case 613:
+      case 615:
+      case 616:
+      case 620:
+      case 621:
+      case 622:
+        _weatherIcon = Icon(
+          WeatherIcons.snow,
+          color: NordColors.snowStorm.lightest,
+        );
+        _weatherText = "雪";
+        _weatherType = WeatherType.middleSnow;
         break;
-      case 45:
-        _weatherIcon.add(WeatherIcons.day_fog);
-        _weatherIconColor.add(NordColors.snowStorm.medium);
-        _weatherText.add("霧");
+      // 霞
+      case 701:
+        _weatherIcon = Icon(
+          WeatherIcons.snow,
+          color: NordColors.snowStorm.medium,
+        );
+        _weatherText = "霞";
+        _weatherType = WeatherType.hazy;
         break;
-      case 48:
-        _weatherIcon.add(WeatherIcons.fog);
-        _weatherIconColor.add(NordColors.snowStorm.medium);
-        _weatherText.add("濃霧");
+      // 霧
+      case 741:
+        _weatherIcon = Icon(
+          WeatherIcons.day_fog,
+          color: NordColors.snowStorm.medium,
+        );
+        _weatherText = "霧";
+        _weatherType = WeatherType.foggy;
         break;
-      case 51:
-      case 53:
-      case 55:
-      case 56:
-      case 57:
-        _weatherIcon.add(WeatherIcons.day_showers);
-        _weatherIconColor.add(NordColors.frost.darkest);
-        _weatherText.add("霧雨");
+      case 800:
+        _weatherIcon = Icon(
+          WeatherIcons.day_sunny,
+          color: NordColors.aurora.orange,
+        );
+        _weatherText = "晴れ";
+        _weatherType = WeatherType.sunny;
         break;
-      case 61:
-      case 63:
-      case 65:
-      case 66:
-      case 67:
-        _weatherIcon.add(WeatherIcons.rain);
-        _weatherIconColor.add(NordColors.frost.darkest);
-        _weatherText.add("雨");
-        break;
-      case 71:
-      case 73:
-      case 75:
-      case 77:
-        _weatherIcon.add(WeatherIcons.snow);
-        _weatherIconColor.add(NordColors.snowStorm.lightest);
-        _weatherText.add("雪");
-        break;
-      case 80:
-      case 81:
-      case 82:
-        _weatherIcon.add(WeatherIcons.day_rain);
-        _weatherIconColor.add(NordColors.frost.darkest);
-        _weatherText.add("にわか雨");
-        break;
-      case 85:
-      case 86:
-        _weatherIcon.add(WeatherIcons.day_rain_mix);
-        _weatherIconColor.add(NordColors.snowStorm.lightest);
-        _weatherText.add("みぞれ雪");
-        break;
-      case 95:
-        _weatherIcon.add(WeatherIcons.thunderstorm);
-        _weatherIconColor.add(NordColors.aurora.yellow);
-        _weatherText.add("雷雨");
-        break;
-      case 96:
-      case 99:
-        _weatherIcon.add(WeatherIcons.thunderstorm);
-        _weatherIconColor.add(NordColors.aurora.yellow);
-        _weatherText.add("雹雷雨");
+      case 801:
+      case 802:
+      case 803:
+      case 804:
+        _weatherIcon = Icon(
+          WeatherIcons.cloud,
+          size: 150.0,
+          color: NordColors.snowStorm.medium,
+          shadows: const [
+            BoxShadow(
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
+        );
+        _weatherText = "くもり";
+        _weatherType = WeatherType.cloudy;
         break;
       default:
-        _weatherIcon.add(WeatherIcons.na);
-        _weatherIconColor.add(NordColors.snowStorm.lightest);
-        _weatherText.add("不明");
+        _weatherIcon = Icon(
+          WeatherIcons.na,
+          color: NordColors.snowStorm.lightest,
+        );
+        _weatherText = "不明";
     }
+    DateFormat format = DateFormat("HH:mm");
+    _sunrise = format.format(_weather.sunrise!);
+    _sunset = format.format(_weather.sunset!);
   }
 }

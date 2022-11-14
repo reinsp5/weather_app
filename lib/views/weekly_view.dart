@@ -15,7 +15,7 @@ class WeeklyView extends StatelessWidget {
       child: RefreshIndicator(
         color: Colors.black54,
         onRefresh: () async {
-          await context.read<HomeViewModel>().getWeekWeather();
+          // await context.read<HomeViewModel>().getWeekWeather();
         },
         child: CustomScrollView(
           slivers: <Widget>[
@@ -26,15 +26,16 @@ class WeeklyView extends StatelessWidget {
               delegate: SliverChildListDelegate(
                 [
                   Column(
-                    children: columns(
-                        icons: context.select((HomeViewModel homeViewModel) =>
-                            homeViewModel.weatherIcon),
-                        colors: context.select((HomeViewModel homeViewModel) =>
-                            homeViewModel.weatherIconColor),
-                        texts: context.select((HomeViewModel homeViewModel) =>
-                            homeViewModel.weatherText),
-                        daily: context.select((HomeViewModel homeViewModel) =>
-                            homeViewModel.daily)),
+                    children: [],
+                    // columns(
+                    //     icons: context.select((HomeViewModel homeViewModel) =>
+                    //         homeViewModel.weatherIcon),
+                    //     colors: context.select((HomeViewModel homeViewModel) =>
+                    //         homeViewModel.weatherIconColor),
+                    //     texts: context.select((HomeViewModel homeViewModel) =>
+                    //         homeViewModel.weatherText),
+                    //     daily: context.select((HomeViewModel homeViewModel) =>
+                    //         homeViewModel.daily)),
                   ),
                 ],
               ),
