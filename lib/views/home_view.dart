@@ -3,6 +3,7 @@ import 'package:flutter_nord_theme/flutter_nord_theme.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:weather/weather.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
@@ -11,7 +12,8 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Container(
+      // padding: EdgeInsets.only(top: 60),
       child: FutureBuilder(
         future:
             Provider.of<HomeViewModel>(context, listen: false).getLocAsGps(),
@@ -67,7 +69,12 @@ class WeatherWidget extends StatelessWidget {
             children: [
               Container(
                 width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(
+                  top: 80,
+                  left: 35,
+                  right: 35,
+                  bottom: 20,
+                ),
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +130,13 @@ class WeatherWidget extends StatelessWidget {
                     Container(
                       height: 200,
                       width: 200,
-                      child: homeViewModel.weatherIcon,
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: homeViewModel.weatherIcon,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
                     ),
                     Text(
                       // 天候
@@ -142,6 +155,9 @@ class WeatherWidget extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              SizedBox(
+                height: 20,
               ),
               // 温度
               Center(
@@ -230,33 +246,142 @@ class WeatherWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              // 風速
-              Center(
-                child: SizedBox(
-                  width: 300,
-                  height: 100,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Container(
-                        color: Colors.black.withOpacity(0.5),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              WeatherIcons.wind_deg_0,
-                              size: 50,
-                              color: NordColors.snowStorm.lightest,
+              // 降水確率
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: 140,
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Container(
+                            color: Colors.black.withOpacity(0.5),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Container(
+                                    padding: EdgeInsets.only(
+                                      left: 20,
+                                      top: 15,
+                                    ),
+                                    child: Icon(
+                                      WeatherIcons.raindrop,
+                                      size: 40,
+                                      color: NordColors.snowStorm.lightest,
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "降水量",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      "${homeViewModel.weather.rainLastHour ?? 0} ml",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            Text("${homeViewModel.weather.windSpeed} m/h"),
-                          ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  // 風速
+                  Center(
+                    child: SizedBox(
+                      width: 140,
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Container(
+                            color: Colors.black.withOpacity(0.5),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Container(
+                                    padding: EdgeInsets.only(
+                                      left: 20,
+                                      top: 15,
+                                    ),
+                                    child: Icon(
+                                      WeatherIcons.wind_deg_0,
+                                      size: 40,
+                                      color: NordColors.snowStorm.lightest,
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "風速",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      "${homeViewModel.weather.windSpeed} m/h",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // 週間天気
+              for (Weather weather in homeViewModel.weeklyWeather)
+                Center(
+                  child: SizedBox(
+                    width: 300,
+                    height: 100,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Container(
+                          color: Colors.black.withOpacity(0.5),
+                          child: Row(
+                            children: [],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         )

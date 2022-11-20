@@ -18,29 +18,6 @@ class SettingsView extends StatelessWidget {
           children: [
             ListTile(
               title: Text(
-                "デフォルト地域設定",
-                style: TextStyle(
-                  color: NordColors.snowStorm.lightest,
-                  fontSize: 20,
-                ),
-              ),
-              leading: Icon(
-                Icons.location_pin,
-                color: NordColors.snowStorm.lightest,
-                size: 30,
-              ),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DefaultLocationSettingView(),
-                ),
-              ),
-            ),
-            Divider(
-              color: NordColors.snowStorm.lightest,
-            ),
-            ListTile(
-              title: Text(
                 "Licence",
                 style: TextStyle(
                   color: NordColors.snowStorm.lightest,

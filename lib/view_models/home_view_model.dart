@@ -15,6 +15,7 @@ import 'package:weather_icons/weather_icons.dart';
 class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
   late Weather _weather;
+  late List<Weather> _weeklyWeather;
   late Icon _weatherIcon; // 天候アイコン
   String _state = ""; // 都道府県
   String _city = ""; // 市区町村
@@ -33,18 +34,8 @@ class HomeViewModel extends ChangeNotifier {
   LocationService locationService = LocationService();
   WeatherService weatherService = WeatherService();
 
-  Daily _daily = Daily(
-    precipitationSum: [],
-    sunrise: [],
-    sunset: [],
-    temperature2MMax: [],
-    temperature2MMin: [],
-    time: [],
-    weathercode: [],
-    windspeed10MMax: [],
-  );
-
   Weather get weather => _weather;
+  List<Weather> get weeklyWeather => _weeklyWeather;
   String get state => _state;
   String get city => _city;
   Icon get weatherIcon => _weatherIcon;
@@ -55,7 +46,6 @@ class HomeViewModel extends ChangeNotifier {
   String get sunrise => _sunrise;
   String get sunset => _sunset;
   bool get isLoading => _isLoading;
-  Daily get daily => _daily;
   WeatherType get weatherType => _weatherType;
 
   /// 現在位置を取得し、保管する。
@@ -89,40 +79,15 @@ class HomeViewModel extends ChangeNotifier {
       lat: _latitude,
       lon: _longitude,
     );
+    _weeklyWeather = await weatherService.getWeeklyWeather(
+      lat: _latitude,
+      lon: _longitude,
+    );
     setWeatherInfo(
       weathercode: _weather.weatherConditionCode!,
     );
     notifyListeners();
   }
-
-  /// 一週間先までの天気予報を取得する
-  // Future<void> getWeekWeather() async {
-  //   WeeklyWeather _weekWeather = WeeklyWeather.fromJson(
-  //       await weatherService.getWeeklyWeather(_latitude, _longitude));
-  //   _daily = _weekWeather.daily;
-
-  //   _weatherIcon = [];
-  //   _weatherIconColor = [];
-  //   _weatherText = [];
-  //   log(_daily.weathercode.toString());
-  //   for (var element in _daily.weathercode) {
-  //     setWeatherInfo(weathercode: element);
-  //   }
-
-  //   _temperature2MMin = _daily.temperature2MMin.first.toString();
-  //   _temperature2MMax = _daily.temperature2MMax.first.toString();
-  //   DateTime dateTime = DateTime.parse(_daily.sunrise.first);
-  //   _sunrise = dateTime.hour.toString().padLeft(2, "0") +
-  //       ":" +
-  //       dateTime.minute.toString().padLeft(2, "0");
-
-  //   dateTime = DateTime.parse(_daily.sunset.first);
-  //   _sunset = dateTime.hour.toString().padLeft(2, "0") +
-  //       ":" +
-  //       dateTime.minute.toString().padLeft(2, "0");
-  //   _isLoading = false;
-  //   notifyListeners();
-  // }
 
   void streamLocation() async {
     LocationSettings settings = const LocationSettings(distanceFilter: 500);
@@ -191,7 +156,8 @@ class HomeViewModel extends ChangeNotifier {
       case 522:
       case 531:
         _weatherIcon = Icon(
-          WeatherIcons.fog,
+          WeatherIcons.rain,
+          size: 150.0,
           color: NordColors.frost.darkest,
         );
         _weatherText = "雨";
@@ -250,8 +216,9 @@ class HomeViewModel extends ChangeNotifier {
           WeatherIcons.cloud,
           size: 150.0,
           color: NordColors.snowStorm.medium,
-          shadows: const [
+          shadows: [
             BoxShadow(
+              color: Colors.black.withOpacity(0.5),
               blurRadius: 20,
               offset: Offset(5, 5),
             ),

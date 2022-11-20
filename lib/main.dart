@@ -1,4 +1,3 @@
-import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nord_theme/flutter_nord_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_app/view_models/main_view_model.dart';
 import 'package:weather_app/views/settings_view.dart';
-import 'package:weather_app/views/weekly_view.dart';
 import 'views/home_view.dart';
 
 void main() {
@@ -15,12 +13,14 @@ void main() {
 
 /// アプリケーションのページ
 List<Widget> pages = [
-  const WeeklyView(),
+  // const WeeklyView(),
   const HomeView(),
   const SettingsView(),
 ];
 
-int pageIndex = 1;
+enum PageIndex { Home, Settings }
+
+int pageIndex = 0;
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          useMaterial3: true,
           textTheme: GoogleFonts.sawarabiGothicTextTheme(
             Theme.of(context).textTheme,
           ),
@@ -58,29 +59,41 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: NordColors.polarNight.darkest,
-      body: TabBarView(
-        children: pages,
-        physics: const NeverScrollableScrollPhysics(),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      bottomNavigationBar: ConvexAppBar(
-        style: TabStyle.fixedCircle,
-        cornerRadius: 15.0,
-        backgroundColor: Colors.black54,
-        items: const [
-          TabItem(icon: Icons.view_week, title: "週間天気"),
-          TabItem(icon: Icons.home, title: "ホーム"),
-          TabItem(icon: Icons.settings, title: "設定"),
-        ],
-        onTap: (index) {
-          setState(() {
-            pageIndex = index;
-          });
-        },
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            ListTile(
+              title: Text('ホーム'),
+              selected: PageIndex.Home.index == pageIndex,
+              onTap: () => setState(() {
+                pageIndex = 0;
+                scaffoldKey.currentState!.closeDrawer();
+              }),
+            ),
+            ListTile(
+              title: Text('設定'),
+              selected: PageIndex.Settings.index == pageIndex,
+              onTap: () => setState(() {
+                pageIndex = 1;
+                scaffoldKey.currentState!.closeDrawer();
+              }),
+            ),
+          ],
+        ),
       ),
+      body: pages[pageIndex],
     );
   }
 }
