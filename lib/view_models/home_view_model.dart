@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_nord_theme/flutter_nord_theme.dart';
@@ -14,16 +15,14 @@ import 'package:weather_icons/weather_icons.dart';
 
 class HomeViewModel extends ChangeNotifier {
   // 画面描画に必要な情報
-  late Weather _weather;
-  late List<Weather> _weeklyWeather;
+  late MyWeather _weather;
+  late List<MyWeather> _weeklyWeather;
   late Icon _weatherIcon; // 天候アイコン
   String _state = ""; // 都道府県
   String _city = ""; // 市区町村
   String _weatherText = ""; // 天候
   String _temperature2MMin = "  . "; // 最低気温
   String _temperature2MMax = "  . "; // 最高気温
-  String _sunrise = "  :  "; // 日の出
-  String _sunset = "  :  "; // 日の入
   bool _isLoading = true; // ローディング画面 ＯＮ／ＯＦＦ
 
   double _latitude = 0.0;
@@ -34,8 +33,8 @@ class HomeViewModel extends ChangeNotifier {
   LocationService locationService = LocationService();
   WeatherService weatherService = WeatherService();
 
-  Weather get weather => _weather;
-  List<Weather> get weeklyWeather => _weeklyWeather;
+  MyWeather get weather => _weather;
+  List<MyWeather> get weeklyWeather => _weeklyWeather;
   String get state => _state;
   String get city => _city;
   Icon get weatherIcon => _weatherIcon;
@@ -43,8 +42,6 @@ class HomeViewModel extends ChangeNotifier {
   String get weatherText => _weatherText;
   String get temperature2MMin => _temperature2MMin;
   String get temperature2MMax => _temperature2MMax;
-  String get sunrise => _sunrise;
-  String get sunset => _sunset;
   bool get isLoading => _isLoading;
   WeatherType get weatherType => _weatherType;
 
@@ -75,17 +72,24 @@ class HomeViewModel extends ChangeNotifier {
 
   /// 現在地の天気取得
   Future<void> setCurrentWeather() async {
-    _weather = await weatherService.getCurrentWeatherByLocation(
+    Weather wes = await weatherService.getCurrentWeatherByLocation(
       lat: _latitude,
       lon: _longitude,
     );
-    _weeklyWeather = await weatherService.getWeeklyWeather(
+    _weather = convWeather(wes);
+    DateFormat format = DateFormat("HH:mm");
+    _weather.sunriseText = format.format(_weather.sunrise!);
+    _weather.sunsetText = format.format(_weather.sunset!);
+
+    List<Weather> weeklyWeathers = await weatherService.getWeeklyWeather(
       lat: _latitude,
       lon: _longitude,
     );
-    setWeatherInfo(
-      weathercode: _weather.weatherConditionCode!,
-    );
+    _weeklyWeather = [];
+    for (Weather wes in weeklyWeathers) {
+      _weeklyWeather.add(convWeather(wes));
+      log("${wes.date}");
+    }
     notifyListeners();
   }
 
@@ -105,9 +109,10 @@ class HomeViewModel extends ChangeNotifier {
     });
   }
 
-  /// 天候，天候アイコンをセットする
-  void setWeatherInfo({required int weathercode}) {
-    switch (weathercode) {
+  /// WeatherをMyWeatherに変換する
+  MyWeather convWeather(Weather weather) {
+    MyWeather myWeather = MyWeather(weather.toJson()!);
+    switch (myWeather.weatherConditionCode) {
       // OpenWeatherAPI
       // 雷雨
       case 200:
@@ -120,12 +125,19 @@ class HomeViewModel extends ChangeNotifier {
       case 230:
       case 231:
       case 232:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.thunderstorm,
           color: NordColors.aurora.yellow,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "雷雨";
-        _weatherType = WeatherType.thunder;
+        myWeather.weatherText = "雷雨";
+        myWeather.weatherType = WeatherType.thunder;
         break;
       // 霧雨
       case 300:
@@ -137,12 +149,19 @@ class HomeViewModel extends ChangeNotifier {
       case 313:
       case 314:
       case 321:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.day_showers,
           color: NordColors.frost.darkest,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "霧雨";
-        _weatherType = WeatherType.lightRainy;
+        myWeather.weatherText = "霧雨";
+        myWeather.weatherType = WeatherType.lightRainy;
         break;
       // 雨
       case 500:
@@ -155,13 +174,20 @@ class HomeViewModel extends ChangeNotifier {
       case 521:
       case 522:
       case 531:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.rain,
           size: 150.0,
           color: NordColors.frost.darkest,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "雨";
-        _weatherType = WeatherType.middleRainy;
+        myWeather.weatherText = "雨";
+        myWeather.weatherType = WeatherType.middleRainy;
         break;
       // 雪
       case 600:
@@ -175,44 +201,72 @@ class HomeViewModel extends ChangeNotifier {
       case 620:
       case 621:
       case 622:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.snow,
           color: NordColors.snowStorm.lightest,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "雪";
-        _weatherType = WeatherType.middleSnow;
+        myWeather.weatherText = "雪";
+        myWeather.weatherType = WeatherType.middleSnow;
         break;
       // 霞
       case 701:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.snow,
           color: NordColors.snowStorm.medium,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "霞";
-        _weatherType = WeatherType.hazy;
+        myWeather.weatherText = "霞";
+        myWeather.weatherType = WeatherType.hazy;
         break;
       // 霧
       case 741:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.day_fog,
           color: NordColors.snowStorm.medium,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "霧";
-        _weatherType = WeatherType.foggy;
+        myWeather.weatherText = "霧";
+        myWeather.weatherType = WeatherType.foggy;
         break;
       case 800:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.day_sunny,
           color: NordColors.aurora.orange,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: Offset(5, 5),
+            ),
+          ],
         );
-        _weatherText = "晴れ";
-        _weatherType = WeatherType.sunny;
+        myWeather.weatherText = "晴れ";
+        myWeather.weatherType = WeatherType.sunny;
         break;
       case 801:
       case 802:
       case 803:
       case 804:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.cloud,
           size: 150.0,
           color: NordColors.snowStorm.medium,
@@ -224,18 +278,17 @@ class HomeViewModel extends ChangeNotifier {
             ),
           ],
         );
-        _weatherText = "くもり";
-        _weatherType = WeatherType.cloudy;
+        myWeather.weatherText = "くもり";
+        myWeather.weatherType = WeatherType.cloudy;
         break;
       default:
-        _weatherIcon = Icon(
+        myWeather.weatherIconData = Icon(
           WeatherIcons.na,
           color: NordColors.snowStorm.lightest,
         );
-        _weatherText = "不明";
+        myWeather.weatherText = "不明";
     }
-    DateFormat format = DateFormat("HH:mm");
-    _sunrise = format.format(_weather.sunrise!);
-    _sunset = format.format(_weather.sunset!);
+
+    return myWeather;
   }
 }

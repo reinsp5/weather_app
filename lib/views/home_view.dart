@@ -1,9 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_nord_theme/flutter_nord_theme.dart';
 import 'package:flutter_weather_bg_null_safety/flutter_weather_bg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:weather/weather.dart';
+import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_app/view_models/home_view_model.dart';
 import 'package:weather_icons/weather_icons.dart';
 
@@ -30,6 +32,7 @@ class HomeView extends StatelessWidget {
 
           // エラー発生
           if (snapshot.error != null) {
+            print(snapshot.error);
             return const Center(
               child: Text('エラーが発生しました。'),
             );
@@ -47,12 +50,14 @@ class HomeView extends StatelessWidget {
 }
 
 class WeatherWidget extends StatelessWidget {
-  const WeatherWidget({
+  WeatherWidget({
     Key? key,
     required this.homeViewModel,
   }) : super(key: key);
 
   final HomeViewModel homeViewModel;
+
+  DateFormat format = DateFormat("MM/dd HH:mm");
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +137,7 @@ class WeatherWidget extends StatelessWidget {
                       width: 200,
                       child: Align(
                         alignment: Alignment.topCenter,
-                        child: homeViewModel.weatherIcon,
+                        child: homeViewModel.weather.weatherIconData,
                       ),
                     ),
                     SizedBox(
@@ -140,7 +145,7 @@ class WeatherWidget extends StatelessWidget {
                     ),
                     Text(
                       // 天候
-                      homeViewModel.weatherText,
+                      homeViewModel.weather.weatherText!,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: NordColors.snowStorm.lightest,
@@ -210,7 +215,7 @@ class WeatherWidget extends StatelessWidget {
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
                                     // 日の出時刻
-                                    homeViewModel.sunrise,
+                                    homeViewModel.weather.sunriseText!,
                                     style: TextStyle(
                                       color: NordColors.snowStorm.lightest,
                                     ),
@@ -231,7 +236,7 @@ class WeatherWidget extends StatelessWidget {
                                   padding: const EdgeInsets.only(left: 8.0),
                                   child: Text(
                                     // 日の入時刻
-                                    homeViewModel.sunset,
+                                    homeViewModel.weather.sunsetText!,
                                     style: TextStyle(
                                       color: NordColors.snowStorm.lightest,
                                     ),
@@ -363,7 +368,7 @@ class WeatherWidget extends StatelessWidget {
                 ],
               ),
               // 週間天気
-              for (Weather weather in homeViewModel.weeklyWeather)
+              for (MyWeather weather in homeViewModel.weeklyWeather)
                 Center(
                   child: SizedBox(
                     width: 300,
@@ -375,13 +380,55 @@ class WeatherWidget extends StatelessWidget {
                         child: Container(
                           color: Colors.black.withOpacity(0.5),
                           child: Row(
-                            children: [],
+                            children: [
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  padding: EdgeInsets.only(
+                                    top: 5,
+                                    left: 15,
+                                  ),
+                                  child: Icon(
+                                    weather.weatherIconData!.icon,
+                                    color: NordColors.snowStorm.medium,
+                                    size: 50,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(
+                                  left: 20,
+                                ),
+                                child: Text(
+                                  "${format.format(weather.date!)}",
+                                  style: TextStyle(
+                                    color: NordColors.snowStorm.medium,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(
+                                  left: 20,
+                                ),
+                                child: Text(
+                                  "${weather.weatherText}",
+                                  style: TextStyle(
+                                    color: NordColors.snowStorm.medium,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
+              SizedBox(
+                height: 20,
+              ),
             ],
           ),
         )

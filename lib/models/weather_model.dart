@@ -7,4 +7,6 @@ class MyWeather extends Weather {
   Icon? weatherIconData;
   String? weatherText;
   WeatherType? weatherType;
+  String? sunriseText;
+  String? sunsetText;
 }

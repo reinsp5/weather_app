@@ -13,7 +13,7 @@ class WeatherService {
     return await ws.currentWeatherByLocation(lat, lon);
   }
 
-  Future<dynamic> getWeeklyWeather(
+  Future<List<Weather>> getWeeklyWeather(
       {required double lat, required double lon}) async {
     return await ws.fiveDayForecastByLocation(lat, lon);
   }
